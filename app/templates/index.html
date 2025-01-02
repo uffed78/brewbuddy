@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrewBuddy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Välkommen till BrewBuddy</h1>
+        <form id="createRecipeForm">
+            <label for="style">Ölstil:</label>
+            <input type="text" id="style" name="style" required>
+            
+            <label for="alcohol">Alkoholstyrka (%):</label>
+            <input type="number" id="alcohol" name="alcohol" required>
+            
+            <label for="flavor">Smakprofil:</label>
+            <textarea id="flavor" name="flavor" required></textarea>
+            
+            <button type="submit">Skapa Recept</button>
+        </form>
+        <div id="recipeOutput"></div>
+    </div>
+    <script>
+        document.getElementById('createRecipeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const style = document.getElementById('style').value;
+            const alcohol = document.getElementById('alcohol').value;
+            const flavor = document.getElementById('flavor').value;
+            
+            const response = await fetch('/create-recipe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ style, alcohol, flavor })
+            });
+            const recipe = await response.json();
+            document.getElementById('recipeOutput').textContent = recipe;
+        });
+    </script>
+</body>
+</html>
