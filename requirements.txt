@@ -1,4 +1,5 @@
 flask
 flask-dotenv
 requests
+beautifulsoup4
 openai

@@ -2,35 +2,41 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 
-# Ladda miljövariabler från .env-filen
+# Ladda miljövariabler
 load_dotenv()
-
-# Skapa en klientinstans för OpenAI
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-def generate_recipe(user_input):
+def generate_recipe(context, user_input):
     """
-    Generera ett ölrecept baserat på användarens input.
+    Skapar recept baserat på val (lager, recept, BJCP-stilar).
     """
-    prompt = f"""
-    Du är en erfaren ölbryggare som guidar användare genom att skapa ölrecept.
-    Användarens input:
-    - Ölstil: {user_input['style']}
-    - Alkoholstyrka: {user_input['alcohol']}%
-    - Smakprofil: {user_input['flavor']}
-    Skapa ett recept baserat på dessa specifikationer:
-    """
+    if context == "inventory":
+        prompt = f"""
+        Du är en erfaren ölbryggare. Använd följande lager för att skapa ett recept:
+        {user_input}
+        Guidar användaren steg för steg till att skapa ett ölrecept.
+        """
+    elif context == "recipe":
+        prompt = f"""
+        Du är en erfaren ölbryggare. Följande recept ska utvecklas:
+        {user_input}
+        Hjälp användaren att justera och förbättra receptet.
+        """
+    elif context == "bjcp":
+        prompt = f"""
+        Du är en erfaren ölbryggare. Använd följande BJCP-stil:
+        {user_input}
+        Guidar användaren steg för steg till att skapa ett ölrecept enligt denna stil.
+        """
 
     try:
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",  # Ange rätt modell beroende på din konfiguration
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Du är en professionell bryggmästare och expert på ölbryggning."},
+                {"role": "system", "content": "Du är en professionell bryggmästare."},
                 {"role": "user", "content": prompt}
             ]
         )
-        # Returnera meddelandets innehåll direkt
-        return completion.choices[0].message.content
+        return response.choices[0].message.content
     except Exception as e:
-        # Hantera fel och returnera ett läsbart meddelande
         return f"Ett fel uppstod vid generering av receptet: {str(e)}"
