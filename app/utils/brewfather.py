@@ -1,42 +1,58 @@
 import requests
 import os
 from dotenv import load_dotenv
+from requests.auth import HTTPBasicAuth
 
 # Ladda miljövariabler från .env
 load_dotenv()
 
+# Konstanter för API-nyckel och användarnamn
+API_KEY = os.getenv('BREWFATHER_API_KEY')
+USERNAME = os.getenv('BREWFATHER_USERNAME')
+
+def validate_credentials():
+    """
+    Validerar att API-nyckeln och användarnamnet finns.
+    """
+    if not API_KEY or not USERNAME:
+        return {"error": "Brewfather API Key eller användarnamn saknas"}
+    return None
+
 def fetch_inventory():
     """
-    Hämtar inventory från Brewfather API med användarnamn och API-nyckel.
+    Hämtar hela inventariet från Brewfather API.
     """
-    api_key = os.getenv('BREWFATHER_API_KEY')
-    username = os.getenv('BREWFATHER_USERNAME')
+    validation_error = validate_credentials()
+    if validation_error:
+        return validation_error
 
-    if not api_key or not username:
-        return {"error": "Brewfather API Key eller användarnamn saknas"}
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    base_url = f"https://api.brewfather.app/v2/inventory"
+    base_url = "https://api.brewfather.app/v2/inventory"
+    auth = HTTPBasicAuth(USERNAME, API_KEY)
 
     try:
-        fermentables_response = requests.get(f"{base_url}/fermentables", headers=headers)
-        hops_response = requests.get(f"{base_url}/hops", headers=headers)
-        yeast_response = requests.get(f"{base_url}/yeast", headers=headers)
+        response = requests.get(base_url, auth=auth)
+        if response.status_code != 200:
+            return {"error": f"Fel vid hämtning av inventariet: {response.text}"}
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Fel vid API-anrop: {str(e)}"}
 
-        # Debug-utskrift för att se API-svar
-        print(f"Fermentables response: {fermentables_response.status_code}, {fermentables_response.text}")
+def fetch_specific_inventory(resource_type):
+    """
+    Hämtar specifik typ av inventarier (fermentables, hops, yeasts) från Brewfather API.
+    """
+    validation_error = validate_credentials()
+    if validation_error:
+        return validation_error
 
-        if fermentables_response.status_code != 200:
-            return {"error": f"Fel vid hämtning av fermentables: {fermentables_response.text}"}
-        
-        return {
-            "fermentables": fermentables_response.json(),
-            "hops": hops_response.json(),
-            "yeast": yeast_response.json()
-        }
+    url = f"https://api.brewfather.app/v2/inventory/{resource_type}"
+    auth = HTTPBasicAuth(USERNAME, API_KEY)
+
+    try:
+        response = requests.get(url, auth=auth)
+        if response.status_code != 200:
+            return {"error": f"Fel vid hämtning av {resource_type}: {response.text}"}
+        return response.json()
     except requests.exceptions.RequestException as e:
         return {"error": f"Fel vid API-anrop: {str(e)}"}
 
@@ -44,20 +60,15 @@ def fetch_recipes():
     """
     Hämtar recept från Brewfather API.
     """
-    api_key = os.getenv('BREWFATHER_API_KEY')
-    username = os.getenv('BREWFATHER_USERNAME')
+    validation_error = validate_credentials()
+    if validation_error:
+        return validation_error
 
-    if not api_key or not username:
-        return {"error": "Brewfather API Key eller användarnamn saknas"}
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    url = f"https://api.brewfather.app/v2/recipes"
+    url = "https://api.brewfather.app/v2/recipes"
+    auth = HTTPBasicAuth(USERNAME, API_KEY)
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, auth=auth)
         if response.status_code != 200:
             return {"error": f"Fel vid hämtning av recept: {response.text}"}
         return response.json()
