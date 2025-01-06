@@ -4,6 +4,11 @@ from .utils.brewfather import fetch_inventory, fetch_recipes, fetch_specific_inv
 from .utils.bjcp import fetch_bjcp_styles
 from .utils.openai_integration import generate_recipe, suggest_beer_styles
 
+from app.utils.brewfather import fetch_inventory, fetch_recipes, fetch_specific_inventory
+from app.utils.bjcp import fetch_bjcp_styles
+from app.utils.openai_integration import generate_recipe, suggest_beer_styles
+
+
 # Definiera Blueprint
 main = Blueprint('main', __name__)
 
