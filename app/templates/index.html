@@ -3,37 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrewBuddy - Interactive Recipe Generator</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>BrewBuddy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>BrewBuddy</h1>
-    <h2>Generate Beer Recipes with ChatGPT</h2>
+    <h1>BrewBuddy - Ölreceptgenerator</h1>
 
-    <!-- Välj BJCP-stil -->
-    <form id="style-form">
-        <label for="bjcp-style">Choose a BJCP Style:</label>
-        <select id="bjcp-style" name="bjcp_style">
-            <!-- Fylls dynamiskt med JavaScript -->
-        </select>
-        <button type="button" id="load-chat">Start Chat</button>
-    </form>
+    <!-- Sök efter ölstilar -->
+    <section>
+        <h2>Sök efter ölstilar</h2>
+        <input type="text" id="search-term" placeholder="Sökterm (t.ex. IPA)">
+        <button onclick="searchStyles()">Sök</button>
+        <div id="search-results"></div>
+    </section>
 
-    <!-- Chattgränssnitt -->
-    <div id="chat-container" style="display: none;">
-        <h2>Chat with BrewBuddy</h2>
-        <div id="chat-window"></div>
-        <input type="text" id="user-input" placeholder="Type your message here..." />
-        <button id="send-message">Send</button>
-        <button id="generate-recipe">Generate Recipe</button>
-    </div>
+    <!-- Filtrera ölstilar -->
+    <section>
+        <h2>Filtrera ölstilar</h2>
+        <textarea id="ingredients" placeholder="Ange ingredienser separerade med kommatecken"></textarea>
+        <button onclick="filterStyles()">Filtrera</button>
+        <div id="filter-results"></div>
+    </section>
 
-    <!-- Visa recept -->
-    <div id="recipe-container" style="display: none;">
-        <h2>Generated Recipe</h2>
-        <pre id="recipe-output"></pre>
-    </div>
-
-    <script src="/static/scripts.js"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

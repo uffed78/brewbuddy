@@ -1,3 +1,5 @@
+from flask import Flask, jsonify, request
+from app.utils.beer_styles import load_beer_styles, search_beer_styles, filter_beer_styles_by_ingredients
 import os
 from flask import Flask, jsonify
 from dotenv import load_dotenv
@@ -13,6 +15,11 @@ API_KEY = os.getenv("BREWFATHER_API_KEY")
 
 # Flask-app
 app = Flask(__name__)
+app = Flask(__name__, static_folder='app/static', template_folder='app/templates')
+
+
+# Ladda ölstilsdatabasen
+beer_styles = load_beer_styles()
 
 # Funktion för att hämta data från Brewfather API
 def fetch_inventory(resource_type):
@@ -53,6 +60,44 @@ def get_yeasts():
     if data:
         return jsonify(data)
     return jsonify({"error": "Failed to fetch yeasts"}), 500
+
+@app.route('/api/styles', methods=['GET'])
+def get_beer_styles():
+    """
+    Hämta alla ölstilar.
+    """
+    return jsonify(beer_styles), 200
+
+@app.route('/api/styles/search', methods=['GET'])
+def search_styles():
+    """
+    Sök efter ölstilar baserat på en term (namn eller kategori).
+    """
+    search_term = request.args.get('term', '')
+    if not search_term:
+        return jsonify({"error": "Ingen sökterm angiven"}), 400
+
+    results = search_beer_styles(beer_styles, search_term)
+    return jsonify(results), 200
+
+@app.route('/api/styles/filter', methods=['POST'])
+def filter_styles():
+    """
+    Filtrera ölstilar baserat på tillgängliga ingredienser.
+    """
+    data = request.get_json()
+    available_ingredients = set(data.get('ingredients', []))
+
+    if not available_ingredients:
+        return jsonify({"error": "Inga ingredienser angivna"}), 400
+
+    matching_styles = filter_beer_styles_by_ingredients(beer_styles, available_ingredients)
+    return jsonify(matching_styles), 200
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 
 # Starta Flask-applikationen
 if __name__ == '__main__':

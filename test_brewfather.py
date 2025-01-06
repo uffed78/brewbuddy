@@ -1,24 +1,25 @@
-import requests
+import sys
 import os
-from dotenv import load_dotenv
 
-# Ladda miljövariabler
-load_dotenv()
+# Lägg till sökvägen till app/utils i sys.path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app', 'utils'))
 
-# Hämta nyckel och användarnamn
-api_key = os.getenv('BREWFATHER_API_KEY')
-username = os.getenv('BREWFATHER_USERNAME')
+from brewfather import fetch_specific_inventory, filter_ingredients
 
-# Definiera headers och URL
-headers = {
-    "Authorization": f"Bearer {api_key}",  # Korrigerat till "Bearer"
-    "Content-Type": "application/json"
-}
-url = "https://api.brewfather.app/v2/inventory/fermentables"
+def test_fetch_and_filter_inventory(resource_type):
+    try:
+        inventory = fetch_specific_inventory(resource_type)
+        if "error" in inventory:
+            print(f"Fel vid hämtning av inventory för {resource_type}:", inventory["error"])
+            return
 
-# Gör API-anropet
-response = requests.get(url, headers=headers)
+        print(f"Inventory för {resource_type} importerat.")
+        filtered_inventory = filter_ingredients(inventory)
+        print("\nFiltrerad inventering:")
+        print(filtered_inventory)
+    except Exception as e:
+        print("Ett oväntat fel inträffade:", e)
 
-# Skriv ut resultat
-print(f"Status Code: {response.status_code}")
-print(f"Response Text: {response.text}")
+if __name__ == "__main__":
+    resource_type = input("Ange vilken typ av inventory du vill hämta (fermentables, hops, yeasts): ").strip()
+    test_fetch_and_filter_inventory(resource_type)
