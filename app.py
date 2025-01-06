@@ -5,6 +5,10 @@ from flask import Flask, jsonify
 from dotenv import load_dotenv
 import requests
 from requests.auth import HTTPBasicAuth
+from flask import render_template
+from app.routes import api
+
+
 
 # Ladda miljövariabler från .env-filen
 load_dotenv()
@@ -16,6 +20,8 @@ API_KEY = os.getenv("BREWFATHER_API_KEY")
 # Flask-app
 app = Flask(__name__)
 app = Flask(__name__, static_folder='app/static', template_folder='app/templates')
+
+app.register_blueprint(api, url_prefix='/api')
 
 
 # Ladda ölstilsdatabasen

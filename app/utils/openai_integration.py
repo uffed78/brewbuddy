@@ -42,3 +42,31 @@ def generate_recipe(bjcp_style, inventory):
     except Exception as e:
         print(f"Exception: {str(e)}")
         return f"Error generating recipe: {str(e)}"
+
+
+def suggest_beer_styles(ingredients):
+    """
+    Använder ChatGPT för att föreslå ölstilar baserat på användarens ingredienser.
+    Args:
+        ingredients (list): Lista över användarens ingredienser.
+    Returns:
+        str: Förslag på ölstilar genererade av OpenAI.
+    """
+    try:
+        # Skapa meddelandekontext för GPT
+        messages = [
+            {"role": "system", "content": "Du är en hjälpsam assistent som föreslår ölstilar baserat på givna ingredienser."},
+            {"role": "user", "content": f"Jag har följande ingredienser: {', '.join(ingredients)}. Vilka ölstilar kan jag brygga med dessa?"}
+        ]
+
+        # Anropa OpenAI:s API
+        response = client.chat.completions.create(
+            messages=messages,
+            model="gpt-3.5-turbo",
+            max_tokens=150,
+            temperature=0.7
+        )
+
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Fel vid anrop till OpenAI: {str(e)}"

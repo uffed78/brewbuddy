@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask import Blueprint, render_template, request
 from .utils.brewfather import fetch_inventory, fetch_recipes, fetch_specific_inventory
 from .utils.bjcp import fetch_bjcp_styles
-from .utils.openai_integration import generate_recipe
+from .utils.openai_integration import generate_recipe, suggest_beer_styles
 
 # Definiera Blueprint
 main = Blueprint('main', __name__)
@@ -69,3 +69,16 @@ def home():
 
     return render_template('index.html', recipe=recipe)
 
+@api.route('/suggest_styles', methods=['POST'])
+def suggest_styles():
+    """
+    Endpoint för att få ölstilsförslag från ChatGPT.
+    """
+    data = request.get_json()
+    ingredients = data.get('ingredients', [])
+
+    if not ingredients:
+        return jsonify({"error": "Inga ingredienser angivna"}), 400
+
+    suggestions = suggest_beer_styles(ingredients)
+    return jsonify({"suggestions": suggestions}), 200
