@@ -1,42 +1,44 @@
 from openai import OpenAI
-import os
-from dotenv import load_dotenv
 
-# Ladda miljövariabler
-load_dotenv()
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Initialisera OpenAI-klienten
+client = OpenAI()
 
-def generate_recipe(context, user_input):
+def generate_recipe(bjcp_style, inventory):
     """
-    Skapar recept baserat på val (lager, recept, BJCP-stilar).
-    """
-    if context == "inventory":
-        prompt = f"""
-        Du är en erfaren ölbryggare. Använd följande lager för att skapa ett recept:
-        {user_input}
-        Guidar användaren steg för steg till att skapa ett ölrecept.
-        """
-    elif context == "recipe":
-        prompt = f"""
-        Du är en erfaren ölbryggare. Följande recept ska utvecklas:
-        {user_input}
-        Hjälp användaren att justera och förbättra receptet.
-        """
-    elif context == "bjcp":
-        prompt = f"""
-        Du är en erfaren ölbryggare. Använd följande BJCP-stil:
-        {user_input}
-        Guidar användaren steg för steg till att skapa ett ölrecept enligt denna stil.
-        """
+    Genererar ett recept baserat på BJCP-stil och tillgängligt inventory.
 
+    Args:
+        bjcp_style (dict): En BJCP-stil, t.ex. {"name": "Pale Ale", "description": "..."}
+        inventory (dict): Användarens tillgängliga ingredienser.
+
+    Returns:
+        str: Ett recept genererat av OpenAI.
+    """
     try:
+        # Skapa meddelandekontext för GPT
+        messages = [
+            {"role": "developer", "content": "You are a helpful assistant that generates beer recipes."},
+            {"role": "user", "content": (
+                f"Create a beer recipe based on the following BJCP style:\n"
+                f"Name: {bjcp_style['name']}\n"
+                f"Description: {bjcp_style['description']}\n\n"
+                f"Use the following ingredients from the inventory:\n"
+                f"Malts: {', '.join([m['name'] for m in inventory['fermentables']])}\n"
+                f"Hops: {', '.join([h['name'] for h in inventory['hops']])}\n"
+                f"Yeasts: {', '.join([y['name'] for y in inventory['yeasts']])}\n\n"
+                f"Generate a detailed recipe including ingredient amounts, brewing steps, and fermentation times."
+            )}
+        ]
+
+        # Anropa GPT med den korrekta metoden
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Du är en professionell bryggmästare."},
-                {"role": "user", "content": prompt}
-            ]
+            model="gpt-4o",
+            messages=messages
         )
-        return response.choices[0].message.content
+
+        # Returnera GPT:s svar
+        return response.choices[0].message.content.strip()
+
     except Exception as e:
-        return f"Ett fel uppstod vid generering av receptet: {str(e)}"
+        print(f"Exception: {str(e)}")
+        return f"Error generating recipe: {str(e)}"

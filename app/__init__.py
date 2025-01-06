@@ -1,12 +1,13 @@
 from flask import Flask
-from flask_dotenv import DotEnv
 
 def create_app():
     app = Flask(__name__)
-    env = DotEnv(app)
-    env.init_app(app, env_file=".env")
 
-    from app.routes import main
-    app.register_blueprint(main)
+    # Konfiguration
+    app.config.from_pyfile('config.py', silent=True)
+
+    # Registrera Blueprints
+    from .routes import main as main_blueprint
+    app.register_blueprint(main_blueprint)
 
     return app
