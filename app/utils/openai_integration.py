@@ -3,21 +3,9 @@ from openai import OpenAI
 # Initialisera OpenAI-klienten
 client = OpenAI()
 
-
-
 def generate_recipe(bjcp_style, inventory):
-    """
-    Genererar ett recept baserat på BJCP-stil och tillgängligt inventory.
-
-    Args:
-        bjcp_style (dict): En BJCP-stil, t.ex. {"name": "Pale Ale", "description": "..."}
-        inventory (dict): Användarens tillgängliga ingredienser.
-
-    Returns:
-        str: Ett recept genererat av OpenAI.
-    """
+    """Generera ett ölrecept baserat på BJCP-stil och inventory."""
     try:
-        # Skapa meddelandekontext för GPT
         messages = [
             {"role": "developer", "content": "You are a helpful assistant that generates beer recipes."},
             {"role": "user", "content": (
@@ -32,63 +20,29 @@ def generate_recipe(bjcp_style, inventory):
             )}
         ]
 
-        # Anropa GPT med den korrekta metoden
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=messages
         )
 
-        # Returnera GPT:s svar
         return response.choices[0].message.content.strip()
 
     except Exception as e:
-        print(f"Exception: {str(e)}")
         return f"Error generating recipe: {str(e)}"
 
-
-from openai import OpenAI
-client = OpenAI()
-
-def suggest_beer_styles(ingredients):
-    """
-    Använd ChatGPT för att föreslå ölstilar baserat på användarens ingredienser.
-    """
-    prompt = f"Jag har följande ingredienser: {', '.join(ingredients)}. Vilka ölstilar kan jag brygga med dessa ingredienser?"
-
+def handle_chat(user_input):
+    """Hantera användarens meddelande i chatten."""
     try:
+        messages = [
+            {"role": "developer", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_input}
+        ]
+
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "developer", "content": "You are a helpful assistant that specializes in brewing beer."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=150,
-            temperature=0.7
+            messages=messages
         )
-        return response.choices[0].message["content"]
-    except Exception as e:
-        return f"Fel vid anrop till OpenAI: {str(e)}"
 
-def generate_recipe_with_gpt(beer_style, ingredients):
-    """
-    Använd ChatGPT för att generera ett ölrecept baserat på stil och ingredienser.
-    """
-    prompt = (
-        f"Jag vill brygga en {beer_style}. "
-        f"Jag har följande ingredienser: {', '.join(ingredients)}. "
-        "Skapa ett komplett ölrecept med stegvisa instruktioner, ingrediensmängder och jästemperatur."
-    )
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "developer", "content": "Du är en AI-expert på att skapa ölrecept."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=300,
-            temperature=0.7
-        )
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        return f"Fel vid anrop till OpenAI: {str(e)}"
+        return f"Error handling chat: {str(e)}"

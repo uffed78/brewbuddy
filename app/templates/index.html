@@ -41,5 +41,19 @@
     
 
     <script src="{{ url_for('static', filename='main.js') }}"></script>
+
+    <div id="recipe-container" style="display: none;">
+        <h2>Generated Recipe</h2>
+        <pre id="recipe-output"></pre>
+        <button id="save-recipe">Save Recipe</button>
+    </div>
+    
+    <div id="saved-recipes-container" style="display: none;">
+        <h2>Saved Recipes</h2>
+        <ul id="saved-recipes-list"></ul>
+    </div>
+    
+    <script src="/static/scripts.js"></script>
+    
 </body>
 </html>

@@ -1,11 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const styleForm = document.getElementById("style-form");
-    const chatContainer = document.getElementById("chat-container");
-    const chatWindow = document.getElementById("chat-window");
-    const recipeContainer = document.getElementById("recipe-container");
-    const recipeOutput = document.getElementById("recipe-output");
-
-    // Hämta BJCP-stilar från servern
+    // Ladda BJCP-stilar från backend
     fetch("/bjcp-styles")
         .then(response => response.json())
         .then(styles => {
@@ -18,17 +12,18 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-    // Starta chatten
+    // Hantera klick för att starta chatten
     document.getElementById("load-chat").addEventListener("click", () => {
-        styleForm.style.display = "none";
-        chatContainer.style.display = "block";
+        document.getElementById("style-form").style.display = "none";
+        document.getElementById("chat-container").style.display = "block";
         const selectedStyle = document.getElementById("bjcp-style").value;
-        chatWindow.innerHTML += `<div class="bot-message">You selected: ${selectedStyle}</div>`;
+        document.getElementById("chat-window").innerHTML += `<div class="bot-message">You selected: ${selectedStyle}</div>`;
     });
 
     // Skicka meddelande till ChatGPT
     document.getElementById("send-message").addEventListener("click", () => {
         const userInput = document.getElementById("user-input").value;
+        const chatWindow = document.getElementById("chat-window");
         chatWindow.innerHTML += `<div class="user-message">${userInput}</div>`;
         fetch("/generate-recipe", {
             method: "POST",
@@ -41,54 +36,43 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     });
 
-    async function loadInventory() {
-        const response = await fetch('/api/brewfather/inventory');
-        const inventory = await response.json();
-        displayInventory(inventory);
-    }
-    
-    function displayInventory(inventory) {
-        const inventoryDiv = document.getElementById('inventory');
-        inventoryDiv.innerHTML = inventory.map(item => `
-            <label>
-                <input type="checkbox" value="${item.name}">
-                ${item.name}
-            </label>
-        `).join('');
-    }
-    
-    document.getElementById('recipe-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-    
-        const beerStyle = document.getElementById('beer-style').value;
-        const selectedIngredients = Array.from(document.querySelectorAll('#inventory input:checked'))
-            .map(input => input.value);
-    
-        const response = await fetch('/api/generate-recipe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ beer_style: beerStyle, selected_ingredients: selectedIngredients }),
-        });
-    
-        const data = await response.json();
-        const recipeResult = document.getElementById('recipe-result');
-        recipeResult.innerText = data.recipe || data.error;
-    });
+    // Spara recept
+    document.getElementById("save-recipe").addEventListener("click", () => {
+        const recipeName = prompt("Enter a name for the recipe:");
+        const bjcpStyle = document.getElementById("bjcp-style").value;
+        const inventory = JSON.stringify({ /* Du kan fylla med aktuellt inventory */ });
+        const generatedRecipe = document.getElementById("recipe-output").textContent;
 
-    
-    
-    // Generera recept
-    document.getElementById("generate-recipe").addEventListener("click", () => {
-        fetch("/generate-recipe", {
+        fetch("/save-recipe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ finalize: true })
+            body: JSON.stringify({
+                name: recipeName,
+                bjcp_style: bjcpStyle,
+                inventory: inventory,
+                generated_recipe: generatedRecipe
+            })
         })
             .then(response => response.json())
             .then(data => {
-                chatContainer.style.display = "none";
-                recipeContainer.style.display = "block";
-                recipeOutput.textContent = data.recipe;
+                alert("Recipe saved!");
+                loadSavedRecipes();
             });
     });
+
+    // Ladda sparade recept
+    function loadSavedRecipes() {
+        fetch("/saved-recipes")
+            .then(response => response.json())
+            .then(recipes => {
+                const list = document.getElementById("saved-recipes-list");
+                list.innerHTML = "";
+                recipes.forEach(recipe => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `${recipe.name} (${recipe.bjcp_style})`;
+                    list.appendChild(listItem);
+                });
+                document.getElementById("saved-recipes-container").style.display = "block";
+            });
+    }
 });
