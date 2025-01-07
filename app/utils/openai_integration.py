@@ -3,6 +3,8 @@ from openai import OpenAI
 # Initialisera OpenAI-klienten
 client = OpenAI()
 
+
+
 def generate_recipe(bjcp_style, inventory):
     """
     Genererar ett recept baserat på BJCP-stil och tillgängligt inventory.
@@ -44,29 +46,49 @@ def generate_recipe(bjcp_style, inventory):
         return f"Error generating recipe: {str(e)}"
 
 
+from openai import OpenAI
+client = OpenAI()
+
 def suggest_beer_styles(ingredients):
     """
-    Använder ChatGPT för att föreslå ölstilar baserat på användarens ingredienser.
-    Args:
-        ingredients (list): Lista över användarens ingredienser.
-    Returns:
-        str: Förslag på ölstilar genererade av OpenAI.
+    Använd ChatGPT för att föreslå ölstilar baserat på användarens ingredienser.
     """
-    try:
-        # Skapa meddelandekontext för GPT
-        messages = [
-            {"role": "system", "content": "Du är en hjälpsam assistent som föreslår ölstilar baserat på givna ingredienser."},
-            {"role": "user", "content": f"Jag har följande ingredienser: {', '.join(ingredients)}. Vilka ölstilar kan jag brygga med dessa?"}
-        ]
+    prompt = f"Jag har följande ingredienser: {', '.join(ingredients)}. Vilka ölstilar kan jag brygga med dessa ingredienser?"
 
-        # Anropa OpenAI:s API
+    try:
         response = client.chat.completions.create(
-            messages=messages,
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
+            messages=[
+                {"role": "developer", "content": "You are a helpful assistant that specializes in brewing beer."},
+                {"role": "user", "content": prompt}
+            ],
             max_tokens=150,
             temperature=0.7
         )
+        return response.choices[0].message["content"]
+    except Exception as e:
+        return f"Fel vid anrop till OpenAI: {str(e)}"
 
-        return response.choices[0].message.content.strip()
+def generate_recipe_with_gpt(beer_style, ingredients):
+    """
+    Använd ChatGPT för att generera ett ölrecept baserat på stil och ingredienser.
+    """
+    prompt = (
+        f"Jag vill brygga en {beer_style}. "
+        f"Jag har följande ingredienser: {', '.join(ingredients)}. "
+        "Skapa ett komplett ölrecept med stegvisa instruktioner, ingrediensmängder och jästemperatur."
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "developer", "content": "Du är en AI-expert på att skapa ölrecept."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
+            temperature=0.7
+        )
+        return response.choices[0].message["content"]
     except Exception as e:
         return f"Fel vid anrop till OpenAI: {str(e)}"

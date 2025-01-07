@@ -19,9 +19,7 @@ API_KEY = os.getenv("BREWFATHER_API_KEY")
 
 # Flask-app
 app = Flask(__name__, static_folder='app/static', template_folder='app/templates')
-
-app.register_blueprint(api, url_prefix='/api')
-app.register_blueprint(main)
+app.register_blueprint(main, url_prefix='/api')
 
 # Ladda ölstilsdatabasen
 beer_styles = load_beer_styles()

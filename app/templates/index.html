@@ -25,6 +25,21 @@
         <div id="filter-results"></div>
     </section>
 
+    <section>
+        <h2>Skapa ett nytt recept</h2>
+        <form id="recipe-form">
+            <label for="beer-style">Ölstil:</label>
+            <input type="text" id="beer-style" placeholder="T.ex. IPA" required>
+            
+            <h3>Välj ingredienser från ditt lager:</h3>
+            <div id="inventory"></div>
+            
+            <button type="submit">Generera recept</button>
+        </form>
+        <pre id="recipe-result"></pre>
+    </section>
+    
+
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

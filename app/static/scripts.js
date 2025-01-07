@@ -41,6 +41,42 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     });
 
+    async function loadInventory() {
+        const response = await fetch('/api/brewfather/inventory');
+        const inventory = await response.json();
+        displayInventory(inventory);
+    }
+    
+    function displayInventory(inventory) {
+        const inventoryDiv = document.getElementById('inventory');
+        inventoryDiv.innerHTML = inventory.map(item => `
+            <label>
+                <input type="checkbox" value="${item.name}">
+                ${item.name}
+            </label>
+        `).join('');
+    }
+    
+    document.getElementById('recipe-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+    
+        const beerStyle = document.getElementById('beer-style').value;
+        const selectedIngredients = Array.from(document.querySelectorAll('#inventory input:checked'))
+            .map(input => input.value);
+    
+        const response = await fetch('/api/generate-recipe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ beer_style: beerStyle, selected_ingredients: selectedIngredients }),
+        });
+    
+        const data = await response.json();
+        const recipeResult = document.getElementById('recipe-result');
+        recipeResult.innerText = data.recipe || data.error;
+    });
+
+    
+    
     // Generera recept
     document.getElementById("generate-recipe").addEventListener("click", () => {
         fetch("/generate-recipe", {
